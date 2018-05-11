@@ -1,5 +1,6 @@
 import time
 import pickle
+import sys
 
 import numpy as np
 
@@ -116,6 +117,7 @@ class NeuralNetwork(object):
             a1 = self.get_accuraccy(self.X, self.y)
             a2 = self.get_accuraccy(self.X_cv, self.y_cv)
             print(i, cost, cost_cv, a2)
+            sys.stdout.flush()
             if (a2 > best):
                 fout = open("best.txt", "wb")
                 pickle.dump(self.Theta, fout)
