@@ -103,38 +103,46 @@ class NeuralNetwork(object):
             self.Theta[i] = self.Theta[i] - self.alpha * delta[i]
 
     def train(self, iter):
-        best = 100.
+        best = 0.
         for i in range(iter):
             sz = int(self.X.shape[0] / 10)
             start = sz * (i % 10)
             X_now = self.X[start: start + sz]
             Y_now = self.Y[start: start + sz]
+            y_now = self.y[start: start + sz]
             a, z = self.forward_propagation(X_now)
             cost = self.get_cost(X_now, Y_now, 0, a[-1][:, 1:])
             delta = self.backpropagation(a, z, Y_now)
             self.update(delta)
+            accu = self.get_accuraccy_with_a_z(X_now, y_now, a, z)
 
             a, z = self.forward_propagation(self.X_cv)
             cost_cv = self.get_cost(self.X_cv, self.Y_cv, 0, a[-1][:, 1:])
-            if i % 100 == 0:
-                print("Accu_cv = %f" % self.get_accuraccy(self.X_cv, self.y_cv))
-            print(i, cost, cost_cv)
+            accu_cv = self.get_accuraccy_with_a_z(self.X_cv, self.y_cv, a, z)
+
+            print(i, cost, cost_cv, accu, accu_cv)
             sys.stdout.flush()
-            if (cost_cv < best):
+            if (accu_cv > best):
                 best = cost_cv
                 fout = open("best.txt", "wb")
                 pickle.dump(self.Theta, fout)
-                log = "alpha = %f, lambda = %f, hidden unit = %d, iter = %d, time = %f, cost = %f, cost_cv = %f" % (
+                log = "alpha = %f, lambda = %f, hidden unit = %d, iter = %d, time = %f, cost = %f, cost_cv = %f, accu = %f, accu_cv = %f" % (
                     self.alpha,
                     self.ld,
                     self.layer_size[1],
                     i,
                     time.time() - start,
                     cost,
-                    cost_cv
+                    cost_cv,
+                    accu,
+                    accu_cv
                 )
                 pickle.dump(log, fout)
                 fout.close()
+
+    def get_accuraccy_with_a_z(self, X, y, a, z):
+        y_predict = self.predict(a[-1][:, 1:])
+        return int(sum(y_predict == y)) / y.shape[0]
 
     def get_accuraccy(self, X, y):
         a, z = self.forward_propagation(X)
