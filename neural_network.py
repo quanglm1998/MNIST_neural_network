@@ -9,7 +9,7 @@ import reader
 # import matplotlib.pyplot as plt
 
 
-start = time.time()
+startTime = time.time()
 
 
 class NeuralNetwork(object):
@@ -131,7 +131,7 @@ class NeuralNetwork(object):
                     self.ld,
                     self.layer_size[1],
                     i,
-                    time.time() - start,
+                    (float)(time.time() - startTime),
                     cost,
                     cost_cv,
                     accu,
