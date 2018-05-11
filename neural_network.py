@@ -1,10 +1,14 @@
 import time
+import pickle
 
 import numpy as np
 
 import reader
-import plot_data
-import matplotlib.pyplot as plt
+# import plot_data
+# import matplotlib.pyplot as plt
+
+
+start = time.time()
 
 
 class NeuralNetwork(object):
@@ -98,20 +102,36 @@ class NeuralNetwork(object):
             self.Theta[i] = self.Theta[i] - self.alpha * delta[i]
 
     def train(self, iter):
-        costs = []
-        costs_cv = []
+        # costs = []
+        # costs_cv = []
+        best = 0.
         for i in range(iter):
             a, z = self.forward_propagation(self.X)
-            costs.append(self.get_cost(self.X, self.Y, 0, a[-1][:, 1:]))
+            cost = self.get_cost(self.X, self.Y, 0, a[-1][:, 1:])
             delta = self.backpropagation(a, z)
             self.update(delta)
+
             a, z = self.forward_propagation(self.X_cv)
-            costs_cv.append(self.get_cost(self.X_cv, self.Y_cv, 0, a[-1][:, 1:]))
-            print(i, costs[-1], costs_cv[-1], self.get_accuraccy(self.X_cv, self.y_cv))
-            
-        plt.plot(costs, color='blue')
-        plt.plot(costs_cv, color='red')
-        plt.show()
+            cost_cv = self.get_cost(self.X_cv, self.Y_cv, 0, a[-1][:, 1:])
+            a1 = self.get_accuraccy(self.X, self.y)
+            a2 = self.get_accuraccy(self.X_cv, self.y_cv)
+            print(i, cost, cost_cv, a2)
+            if (a2 > best):
+                fout = open("best.txt", "wb")
+                pickle.dump(self.Theta, fout)
+                log = "alpha = %f, lambda = %f, hidden unit = %d, iter = %d, time = %f, cost = %f, cost_cv = %f, accu = %f, accu_cv = %f" % (
+                    self.alpha,
+                    self.ld,
+                    self.layer_size[1],
+                    i,
+                    time.time() - start,
+                    cost,
+                    cost_cv,
+                    a1,
+                    a2
+                )
+                pickle.dump(log, fout)
+                fout.close()
 
     def get_accuraccy(self, X, y):
         a, z = self.forward_propagation(X)
@@ -120,8 +140,6 @@ class NeuralNetwork(object):
 
 
 if __name__ == '__main__':
-    start = time.time()
-
     # read data
     X_train, y_train = reader.load_mnist('data/fashion', kind='train')
     X_test, y_test = reader.load_mnist('data/fashion', kind='t10k')
@@ -135,8 +153,6 @@ if __name__ == '__main__':
 
     X_cv = X_test[5000:10000]
     y_cv = y_test[5000:10000]
-    X_train = X_train[:10000]
-    y_train = y_train[:10000]
     X_test = X_test[:5000]
     y_test = y_test[:5000]
 
