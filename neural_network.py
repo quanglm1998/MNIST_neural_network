@@ -123,7 +123,7 @@ class NeuralNetwork(object):
             print(i, cost, cost_cv, accu, accu_cv)
             sys.stdout.flush()
             if (accu_cv > best):
-                best = cost_cv
+                best = accu_cv
                 fout = open("best.txt", "wb")
                 pickle.dump(self.Theta, fout)
                 log = "alpha = %f, lambda = %f, hidden unit = %d, iter = %d, time = %f, cost = %f, cost_cv = %f, accu = %f, accu_cv = %f" % (
