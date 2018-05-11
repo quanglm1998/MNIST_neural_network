@@ -158,8 +158,8 @@ if __name__ == '__main__':
     X_test = X_test[:5000]
     y_test = y_test[:5000]
 
-    nn = NeuralNetwork(X_train, y_train, X_cv, y_cv, 0.3, 0, [784, 49, 10])
-    nn.train(2000)
+    nn = NeuralNetwork(X_train, y_train, X_cv, y_cv, 0.3, 0.01, [784, 49, 10])
+    nn.train(100000)
 
     print("test", nn.get_accuraccy(X_test, y_test))
     print("train", nn.get_accuraccy(X_train, y_train))
