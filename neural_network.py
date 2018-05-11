@@ -116,9 +116,10 @@ class NeuralNetwork(object):
             cost_cv = self.get_cost(self.X_cv, self.Y_cv, 0, a[-1][:, 1:])
             a1 = self.get_accuraccy(self.X, self.y)
             a2 = self.get_accuraccy(self.X_cv, self.y_cv)
-            print(i, cost, cost_cv, a2)
+            print(i, cost, cost_cv, a1, a2)
             sys.stdout.flush()
             if (a2 > best):
+                best = a2
                 fout = open("best.txt", "wb")
                 pickle.dump(self.Theta, fout)
                 log = "alpha = %f, lambda = %f, hidden unit = %d, iter = %d, time = %f, cost = %f, cost_cv = %f, accu = %f, accu_cv = %f" % (
