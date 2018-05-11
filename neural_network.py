@@ -82,18 +82,18 @@ class NeuralNetwork(object):
 
         return np.reshape(np.argmax(a, axis=1), (a.shape[0], 1))
 
-    def backpropagation(self, a, z):
+    def backpropagation(self, a, z, Y):
         """Return gradient
             n2 x n1
         """
 
         delta = [None] * len(self.Theta)
         sigma = [None] * len(self.layer_size)
-        sigma[-1] = a[-1][:, 1:] - self.Y
+        sigma[-1] = a[-1][:, 1:] - Y
 
         for i in range(len(sigma) - 2, 0, -1):
             sigma[i] = np.dot(sigma[i + 1], self.Theta[i][:, 1:]) * self.get_dSigmoid(z[i])
-        m = self.X.shape[0]
+        m = a[0].shape[0]
         for i in range(len(sigma) - 1):
             delta[i] = (1. / m) * np.dot(sigma[i + 1].T, a[i]) + (self.ld / m) * self.Theta[i]
         return delta
@@ -103,35 +103,35 @@ class NeuralNetwork(object):
             self.Theta[i] = self.Theta[i] - self.alpha * delta[i]
 
     def train(self, iter):
-        # costs = []
-        # costs_cv = []
-        best = 0.
+        best = 100.
         for i in range(iter):
-            a, z = self.forward_propagation(self.X)
-            cost = self.get_cost(self.X, self.Y, 0, a[-1][:, 1:])
-            delta = self.backpropagation(a, z)
+            sz = int(self.X.shape[0] / 10)
+            start = sz * (i % 10)
+            X_now = self.X[start: start + sz]
+            Y_now = self.Y[start: start + sz]
+            a, z = self.forward_propagation(X_now)
+            cost = self.get_cost(X_now, Y_now, 0, a[-1][:, 1:])
+            delta = self.backpropagation(a, z, Y_now)
             self.update(delta)
 
             a, z = self.forward_propagation(self.X_cv)
             cost_cv = self.get_cost(self.X_cv, self.Y_cv, 0, a[-1][:, 1:])
-            a1 = self.get_accuraccy(self.X, self.y)
-            a2 = self.get_accuraccy(self.X_cv, self.y_cv)
-            print(i, cost, cost_cv, a1, a2)
+            if i % 100 == 0:
+                print("Accu_cv = %f" % self.get_accuraccy(self.X_cv, self.y_cv))
+            print(i, cost, cost_cv)
             sys.stdout.flush()
-            if (a2 > best):
-                best = a2
+            if (cost_cv < best):
+                best = cost_cv
                 fout = open("best.txt", "wb")
                 pickle.dump(self.Theta, fout)
-                log = "alpha = %f, lambda = %f, hidden unit = %d, iter = %d, time = %f, cost = %f, cost_cv = %f, accu = %f, accu_cv = %f" % (
+                log = "alpha = %f, lambda = %f, hidden unit = %d, iter = %d, time = %f, cost = %f, cost_cv = %f" % (
                     self.alpha,
                     self.ld,
                     self.layer_size[1],
                     i,
                     time.time() - start,
                     cost,
-                    cost_cv,
-                    a1,
-                    a2
+                    cost_cv
                 )
                 pickle.dump(log, fout)
                 fout.close()
