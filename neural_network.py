@@ -6,7 +6,7 @@ import numpy as np
 
 import reader
 # import plot_data
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 
 startTime = time.time()
@@ -102,11 +102,13 @@ class NeuralNetwork(object):
         for i in range(len(self.Theta)):
             self.Theta[i] = self.Theta[i] - self.alpha * delta[i]
 
-    def train(self, iter):
+    def train(self, iter, bucket):
         best = 0.
+        costs = []
+        costs_cv = []
         for i in range(iter):
-            sz = int(self.X.shape[0] / 10)
-            start = sz * (i % 10)
+            sz = int(self.X.shape[0] / bucket)
+            start = sz * (i % bucket)
             X_now = self.X[start: start + sz]
             Y_now = self.Y[start: start + sz]
             y_now = self.y[start: start + sz]
@@ -121,6 +123,8 @@ class NeuralNetwork(object):
             accu_cv = self.get_accuraccy_with_a_z(self.X_cv, self.y_cv, a, z)
 
             print(i, cost, cost_cv, accu, accu_cv)
+            costs.append(cost)
+            costs_cv.append(cost_cv)
             sys.stdout.flush()
             if (accu_cv > best):
                 best = accu_cv
@@ -139,6 +143,12 @@ class NeuralNetwork(object):
                 )
                 pickle.dump(log, fout)
                 fout.close()
+        plt.plot(costs, color="blue", label="Cost test")
+        plt.plot(costs_cv, color="red", label="Cost cv")
+        plt.xlabel("Iteration")
+        plt.ylabel("Cost")
+        plt.legend(loc=2, prop={'size': 10})
+        plt.show()
 
     def get_accuraccy_with_a_z(self, X, y, a, z):
         y_predict = self.predict(a[-1][:, 1:])
@@ -149,11 +159,16 @@ class NeuralNetwork(object):
         y_predict = self.predict(a[-1][:, 1:])
         return int(sum(y_predict == y)) / y.shape[0]
 
+    def load(self, a):
+        fin = open(a, "rb")
+        self.Theta = pickle.load(fin)
+        print(pickle.load(fin))
+        fin.close()
 
 if __name__ == '__main__':
     # read data
-    X_train, y_train = reader.load_mnist('data/fashion', kind='train')
-    X_test, y_test = reader.load_mnist('data/fashion', kind='t10k')
+    X_train, y_train = reader.load_mnist('data/number', kind='train')
+    X_test, y_test = reader.load_mnist('data/number', kind='t10k')
 
     # Normalize
     mean = np.mean(X_train)
@@ -162,14 +177,21 @@ if __name__ == '__main__':
     X_test = (X_test - mean) / std
     X_train = (X_train - mean) / std
 
+    X_train = X_train[:5000]
+    y_train = y_train[:5000]
     X_cv = X_test[5000:10000]
     y_cv = y_test[5000:10000]
     X_test = X_test[:5000]
     y_test = y_test[:5000]
 
-    nn = NeuralNetwork(X_train, y_train, X_cv, y_cv, 0.3, 0.01, [784, 49, 10])
-    nn.train(100000)
+    nn = NeuralNetwork(X_train, y_train, X_cv, y_cv, 0.1, 0, [784, 25, 10])
+    nn.train(1000, 1)
 
     print("test", nn.get_accuraccy(X_test, y_test))
     print("train", nn.get_accuraccy(X_train, y_train))
     print("cv", nn.get_accuraccy(X_cv, y_cv))
+
+    # nn = NeuralNetwork(X_train, y_train, X_cv, y_cv, 0.3, 0.01, [784, 49, 10])
+    # nn.load("best.txt")
+    # accu = nn.get_accuraccy(X_test, y_test)
+    # print("Accuraccy = %f" % accu)
