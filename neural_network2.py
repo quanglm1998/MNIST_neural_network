@@ -8,8 +8,8 @@ import math
 
 X_train, y_train = mnist_reader.load_mnist('data/number', kind='train')
 X_test, y_test = mnist_reader.load_mnist('data/number', kind='t10k')
-X_train = np.transpose(X_train[:1000])
-y_train = np.transpose(y_train[:1000])
+X_train = np.transpose(X_train[:60000])
+y_train = np.transpose(y_train[:60000])
 X_test = np.transpose(X_test[:1000])
 y_test = np.transpose(y_test[:1000])
 X_train = (X_train - np.mean(X_train)) / np.std(X_train)
